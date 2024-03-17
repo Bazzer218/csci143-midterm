@@ -14,9 +14,15 @@
  * so there is no need to do a breakdown of revenue per year.
  */
 
-SELECT 'enter your solution here';
-
-
+select country, sum(amount) as "Total Revenue"
+from payment
+join customer using (customer_id)
+join address using (address_id)
+join city using (city_id)
+join country using (country_id)
+where country = 'North Korea'
+group by country
+;
 
 
 
@@ -32,8 +38,48 @@ SELECT 'enter your solution here';
  * Order the results so that actors generating the most revenue are at the top.
  */
 
-SELECT 'enter your solution here';
-
+select 
+actor.first_name, 
+actor.last_name,
+sum(payment.amount) as total_revenue
+from 
+actor
+join 
+film_actor on actor.actor_id = film_actor.actor_id
+join 
+film on film_actor.film_id = film.film_id
+join 
+inventory on film.film_id = inventory.film_id
+join 
+rental on inventory.inventory_id = rental.inventory_id
+join 
+payment on rental.rental_id = payment.rental_id
+join 
+film_category on film.film_id = film_category.film_id
+join 
+category on film_category.category_id = category.category_id
+where 
+category.name = 'Family'
+and actor.actor_id not in (
+    select 
+    actor_id
+    from 
+    actor
+    join 
+    film_actor using(actor_id)
+    join 
+    film using(film_id)
+    join 
+    film_category using(film_id)
+    join 
+    category using(category_id)
+    where 
+    category.name = 'Horror'
+)
+group by 
+actor.actor_id
+order by 
+total_revenue desc;
 
 
 
@@ -47,8 +93,26 @@ SELECT 'enter your solution here';
  * but have never co-starred with RUSSEL BACALL in any movie.
  */
 
-SELECT 'enter your solution here';
-
+select first_name, last_name 
+from film
+join film_actor using(film_id)
+join actor using(actor_id)
+where title = 'AGENT TRUMAN'
+and (first_name ||' '|| last_name) not in 
+(
+    select distinct(first_name ||' '|| last_name) as "Actor Name"
+from actor a1
+join film_actor fa1 on a1.actor_id = fa1.actor_id
+join film f1 on fa1.film_id = f1.film_id
+where
+(a1.first_name ||' '|| a1.last_name) != 'RUSSELL BACALL' and
+f1.title in (
+select title from film
+join film_actor using(film_id)
+join actor using(actor_id)
+where first_name = 'RUSSELL' and last_name = 'BACALL')
+order by "Actor Name")
+order by last_name, first_name;
 
 
 
@@ -68,8 +132,27 @@ SELECT 'enter your solution here';
  * Your results should not contain any duplicate titles.
  */
 
-SELECT 'enter your solution here';
+select distinct film.title
+from customer
+join rental using(customer_id)
+join inventory using(inventory_id)
+join film using(film_id)
+join film_actor using(film_id)
+join actor using(actor_id)
+where film.title not ilike '%f%'
+and (actor.first_name ||' '|| actor.last_name) not in
+(
+    select distinct(actor.first_name ||' '|| actor.last_name) as "Actor Name"
+from actor
+where (actor.first_name ||' '|| actor.last_name) not ilike '%f%')
 
+and (customer.first_name ||' '|| customer.last_name) not in
+(
+    select distinct(customer.first_name ||' '|| customer.last_name) as "Customer Name"
+from customer
+where (customer.first_name ||' '|| customer.last_name) not ilike '%f%') 
+order by film.title
+;
 
 
 
